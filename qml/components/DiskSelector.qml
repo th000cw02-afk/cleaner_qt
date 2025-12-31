@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import Cleaner 1.0
 
 ComboBox {
     id: diskComboBox

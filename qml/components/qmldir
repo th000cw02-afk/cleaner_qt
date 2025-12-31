@@ -1,0 +1,5 @@
+module Components
+DiskSelector 1.0 DiskSelector.qml
+ScanProgress 1.0 ScanProgress.qml
+FileListView 1.0 FileListView.qml
+

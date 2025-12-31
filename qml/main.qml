@@ -3,6 +3,9 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import Cleaner 1.0
 
+// 直接导入组件文件（不使用模块）
+import "qrc:/components"
+
 ApplicationWindow {
     id: window
     width: 1200

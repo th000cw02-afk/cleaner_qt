@@ -5,6 +5,7 @@
         <file>components/DiskSelector.qml</file>
         <file>components/ScanProgress.qml</file>
         <file>components/FileListView.qml</file>
+        <file>components/qmldir</file>
     </qresource>
 </RCC>
 

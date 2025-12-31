@@ -1,0 +1,10 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>components/DiskSelector.qml</file>
+        <file>components/ScanProgress.qml</file>
+        <file>components/FileListView.qml</file>
+    </qresource>
+</RCC>
+

@@ -1,161 +1,164 @@
 #include "DiskScanner.h"
-#include <QDir>
-#include <QFileInfo>
-#include <QDebug>
-#include <QFile>
-#include <QDirIterator>
+#include "scan/ParallelScanWorker.h"
+#include "scan/ScanWorker.h"
+#include "scan/NtfsMftScanWorker.h"
+#include "scan/NtfsMftScanner_win.h"
+#include "platform/FileDeleter_win.h"
+#include <QMetaType>
 
-// DiskScannerWorker 实现
-DiskScannerWorker::DiskScannerWorker(QObject* parent)
-    : QObject(parent)
-    , m_stopRequested(false)
-    , m_totalSize(0)
-    , m_fileCount(0)
-    , m_directoryCount(0)
-{
-}
-
-void DiskScannerWorker::scanDirectory(const QString& path) {
-    m_stopRequested = false;
-    m_totalSize = 0;
-    m_fileCount = 0;
-    m_directoryCount = 0;
-    
-    QDir dir(path);
-    if (!dir.exists()) {
-        emit errorOccurred(QString("Directory does not exist: %1").arg(path));
-        emit scanFinished();
-        return;
-    }
-    
-    scanRecursive(path);
-    emit scanFinished();
-}
-
-void DiskScannerWorker::stopScanning() {
-    m_stopRequested = true;
-}
-
-void DiskScannerWorker::scanRecursive(const QString& path) {
-    if (m_stopRequested) {
-        return;
-    }
-    
-    QDir dir(path);
-    if (!dir.exists()) {
-        return;
-    }
-    
-    m_directoryCount++;
-    
-    // 扫描文件
-    QDirIterator it(path, QDir::Files | QDir::NoSymLinks, QDirIterator::Subdirectories);
-    while (it.hasNext() && !m_stopRequested) {
-        QString filePath = it.next();
-        QFileInfo fileInfo(filePath);
-        
-        if (fileInfo.exists() && fileInfo.isFile()) {
-            qint64 size = fileInfo.size();
-            m_totalSize += size;
-            m_fileCount++;
-            
-            FileInfo info;
-            info.path = filePath;
-            info.size = size;
-            info.lastModified = fileInfo.lastModified();
-            info.isDirectory = false;
-            
-            emit fileFound(info);
-            
-            // 每扫描一定数量的文件后发送进度更新
-            if (m_fileCount % 100 == 0) {
-                emit scanProgress(m_directoryCount, m_totalSize, m_fileCount);
-            }
-        }
-    }
-    
-    // 发送最终进度
-    if (!m_stopRequested) {
-        emit scanProgress(m_directoryCount, m_totalSize, m_fileCount);
-    }
-}
-
-// DiskScanner 实现
 DiskScanner::DiskScanner(QObject* parent)
     : QObject(parent)
-    , m_workerThread(nullptr)
-    , m_worker(nullptr)
-    , m_isScanning(false)
 {
+    qRegisterMetaType<ScanResult>("ScanResult");
+    qRegisterMetaType<ScanOptions>("ScanOptions");
 }
 
-DiskScanner::~DiskScanner() {
+DiskScanner::~DiskScanner()
+{
     stopScan();
 }
 
-void DiskScanner::startScan(const QString& path) {
+void DiskScanner::startScan(const QString& path, qint64 minFileSize, bool preferMft)
+{
     if (m_isScanning) {
         stopScan();
     }
-    
+
+    ScanOptions options = ScanOptions::defaultForPath(path);
+    options.minFileSize = minFileSize;
+    m_pendingOptions = options;
+
+    if (preferMft) {
+        QString reason;
+        if (NtfsMftScanner::canUseMftScan(options.rootPath, reason)) {
+            if (!reason.isEmpty()) {
+                emit statusMessage(reason);
+            }
+            startWorkerScan(options, ScanMode::Mft);
+            return;
+        }
+        if (!reason.isEmpty()) {
+            emit statusMessage(reason);
+        }
+    }
+
+    startWorkerScan(options, ScanMode::Parallel);
+}
+
+void DiskScanner::connectWorkerSignals(QObject* worker)
+{
+    const auto progress = [this](int a, qint64 b, int c, int d) { emit scanProgress(a, b, c, d); };
+    const auto error = [this](const QString& e) { emit errorOccurred(e); };
+    const auto status = [this](const QString& s) { emit statusMessage(s); };
+
+    if (auto* w = qobject_cast<ScanWorker*>(worker)) {
+        connect(w, &ScanWorker::scanProgress, this, progress, Qt::QueuedConnection);
+        connect(w, &ScanWorker::errorOccurred, this, error, Qt::QueuedConnection);
+        connect(w, &ScanWorker::statusMessage, this, status, Qt::QueuedConnection);
+    } else if (auto* w = qobject_cast<ParallelScanWorker*>(worker)) {
+        connect(w, &ParallelScanWorker::scanProgress, this, progress, Qt::QueuedConnection);
+        connect(w, &ParallelScanWorker::errorOccurred, this, error, Qt::QueuedConnection);
+        connect(w, &ParallelScanWorker::statusMessage, this, status, Qt::QueuedConnection);
+    } else if (auto* w = qobject_cast<NtfsMftScanWorker*>(worker)) {
+        connect(w, &NtfsMftScanWorker::scanProgress, this, progress, Qt::QueuedConnection);
+        connect(w, &NtfsMftScanWorker::errorOccurred, this, error, Qt::QueuedConnection);
+        connect(w, &NtfsMftScanWorker::statusMessage, this, status, Qt::QueuedConnection);
+    }
+}
+
+void DiskScanner::startWorkerScan(const ScanOptions& options, ScanMode mode)
+{
     setIsScanning(true);
-    
     m_workerThread = new QThread(this);
-    m_worker = new DiskScannerWorker();
-    
-    m_worker->moveToThread(m_workerThread);
-    
-    connect(m_workerThread, &QThread::started, [this, path]() {
-        m_worker->scanDirectory(path);
-    });
-    
-    connect(m_worker, &DiskScannerWorker::fileFound, this, &DiskScanner::fileFound);
-    connect(m_worker, &DiskScannerWorker::scanProgress, this, &DiskScanner::scanProgress);
-    connect(m_worker, &DiskScannerWorker::scanFinished, this, [this]() {
-        setIsScanning(false);
-        emit scanFinished();
-        m_workerThread->quit();
-    });
-    connect(m_worker, &DiskScannerWorker::errorOccurred, this, &DiskScanner::errorOccurred);
-    
-    connect(m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
+
+    if (mode == ScanMode::Mft) {
+        auto* worker = new NtfsMftScanWorker();
+        m_worker = worker;
+        worker->moveToThread(m_workerThread);
+        connect(m_workerThread, &QThread::started, worker, [worker, options]() {
+            worker->scan(options);
+        });
+        connectWorkerSignals(worker);
+        connect(worker, &NtfsMftScanWorker::scanFinished, this, [this, options](const ScanResult& result) {
+            m_workerThread->quit();
+            m_workerThread->wait(5000);
+            m_worker = nullptr;
+            if (result.usedMft && result.root) {
+                setIsScanning(false);
+                emit scanFinished(result);
+                return;
+            }
+            emit statusMessage(QStringLiteral("MFT 扫描不可用，正在使用并行目录扫描…"));
+            startWorkerScan(options, ScanMode::Parallel);
+        }, Qt::QueuedConnection);
+        connect(worker, &NtfsMftScanWorker::scanFinished, worker, &QObject::deleteLater, Qt::QueuedConnection);
+    } else if (mode == ScanMode::Parallel) {
+        auto* worker = new ParallelScanWorker();
+        m_worker = worker;
+        worker->moveToThread(m_workerThread);
+        connect(m_workerThread, &QThread::started, worker, [worker, options]() {
+            worker->scan(options);
+        });
+        connectWorkerSignals(worker);
+        connect(worker, &ParallelScanWorker::scanFinished, this, [this](const ScanResult& result) {
+            setIsScanning(false);
+            emit scanFinished(result);
+            m_workerThread->quit();
+        }, Qt::QueuedConnection);
+        connect(worker, &ParallelScanWorker::scanFinished, worker, &QObject::deleteLater, Qt::QueuedConnection);
+    } else {
+        auto* worker = new ScanWorker();
+        m_worker = worker;
+        worker->moveToThread(m_workerThread);
+        connect(m_workerThread, &QThread::started, worker, [worker, options]() {
+            worker->scan(options);
+        });
+        connectWorkerSignals(worker);
+        connect(worker, &ScanWorker::scanFinished, this, [this](const ScanResult& result) {
+            setIsScanning(false);
+            emit scanFinished(result);
+            m_workerThread->quit();
+        }, Qt::QueuedConnection);
+        connect(worker, &ScanWorker::scanFinished, worker, &QObject::deleteLater, Qt::QueuedConnection);
+    }
+
     connect(m_workerThread, &QThread::finished, m_workerThread, &QObject::deleteLater);
-    
     m_workerThread->start();
 }
 
-void DiskScanner::stopScan() {
-    if (m_worker && m_isScanning) {
-        m_worker->stopScanning();
-        if (m_workerThread && m_workerThread->isRunning()) {
-            m_workerThread->quit();
-            m_workerThread->wait(3000);
-        }
+void DiskScanner::stopScan()
+{
+    if (m_worker) {
+        QMetaObject::invokeMethod(m_worker, "stopScanning", Qt::QueuedConnection);
     }
+    if (m_workerThread && m_workerThread->isRunning()) {
+        m_workerThread->quit();
+        m_workerThread->wait(5000);
+    }
+    m_worker = nullptr;
     setIsScanning(false);
 }
 
-bool DiskScanner::deleteFile(const QString& filePath) {
-    QFile file(filePath);
-    bool success = file.remove();
+bool DiskScanner::deleteFile(const QString& filePath)
+{
+    const bool success = FileDeleter::deletePermanently(filePath);
     emit fileDeleted(filePath, success);
     return success;
 }
 
-bool DiskScanner::deleteFiles(const QStringList& filePaths) {
-    bool allSuccess = true;
+bool DiskScanner::deleteFilesToRecycleBin(const QStringList& filePaths, QString* errorOut)
+{
+    const bool success = FileDeleter::moveToRecycleBin(filePaths, errorOut);
     for (const QString& path : filePaths) {
-        if (!deleteFile(path)) {
-            allSuccess = false;
-        }
+        emit fileDeleted(path, success);
     }
-    return allSuccess;
+    return success;
 }
 
-void DiskScanner::setIsScanning(bool isScanning) {
+void DiskScanner::setIsScanning(bool isScanning)
+{
     if (m_isScanning != isScanning) {
         m_isScanning = isScanning;
         emit isScanningChanged(m_isScanning);
     }
 }
-

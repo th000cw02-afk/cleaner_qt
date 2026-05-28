@@ -1,5 +1,22 @@
 module Components
-DiskSelector 1.0 DiskSelector.qml
+ThemedPanel 1.0 ThemedPanel.qml
+ThemedSectionTitle 1.0 ThemedSectionTitle.qml
+ThemedProgressBar 1.0 ThemedProgressBar.qml
+ThemedListRow 1.0 ThemedListRow.qml
+PathSelector 1.0 PathSelector.qml
 ScanProgress 1.0 ScanProgress.qml
 FileListView 1.0 FileListView.qml
-
+MessageBanner 1.0 MessageBanner.qml
+FolderTreeView 1.0 FolderTreeView.qml
+TopFilesPanel 1.0 TopFilesPanel.qml
+SizeBarDelegate 1.0 SizeBarDelegate.qml
+TreemapView 1.0 TreemapView.qml
+ExtensionStatsPanel 1.0 ExtensionStatsPanel.qml
+SearchField 1.0 SearchField.qml
+CleanupResultsPanel 1.0 CleanupResultsPanel.qml
+AllFilesView 1.0 AllFilesView.qml
+SettingsDialog 1.0 SettingsDialog.qml
+DuplicateView 1.0 DuplicateView.qml
+CleanupHub 1.0 CleanupHub.qml
+FileWatcherView 1.0 FileWatcherView.qml
+SunburstView 1.0 SunburstView.qml

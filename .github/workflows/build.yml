@@ -19,9 +19,11 @@ jobs:
           host: windows
           target: desktop
           arch: win64_msvc2022_64
+          modules: qtdeclarative
 
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCLEANER_QT_BUILD_TESTS=ON -DCLEANER_QT_FETCH_SPDLOG=ON
+        shell: pwsh
+        run: cmake -S . -B build -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR" -DCLEANER_QT_BUILD_TESTS=ON -DCLEANER_QT_FETCH_SPDLOG=ON
 
       - name: Build
         run: cmake --build build --config Release

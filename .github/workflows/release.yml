@@ -25,7 +25,7 @@ jobs:
           install-deps: true
 
       - name: Configure
-        run: cmake -S . -B build -DCLEANER_QT_BUILD_TESTS=ON -DCLEANER_QT_FETCH_SPDLOG=ON
+        run: cmake -S . -B build -A x64 -DCMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}" -DCLEANER_QT_BUILD_TESTS=ON -DCLEANER_QT_FETCH_SPDLOG=OFF
 
       - name: Build
         run: cmake --build build --config Release

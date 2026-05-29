@@ -1,0 +1,44 @@
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.0"
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCLEANER_QT_BUILD_TESTS=ON -DCLEANER_QT_FETCH_SPDLOG=ON
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Test
+        run: |
+          cd build
+          ctest -C Release --output-on-failure
+
+      - name: Deploy
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: cmake --build build --target deploy-release --config Release
+
+      - name: Upload artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CleanerQt-Windows-Release
+          path: public/Release/
+          retention-days: 30

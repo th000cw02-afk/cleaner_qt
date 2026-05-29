@@ -1,0 +1,83 @@
+# Build 目录
+build/
+
+# Public 发布目录（包含编译产物）
+public/
+
+# CMake 生成文件
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# Visual Studio 生成文件
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.aps
+*.pch
+*.vspscc
+*.vssscc
+*.ncb
+*.aps
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Qt Creator 生成文件
+*.pro.user
+*.pro.user.*
+*.qmake.stash
+*.qmake.cache
+
+# 编译产物
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.exp
+
+# 调试文件
+*.pdb
+*.ilk
+*.idb
+*.ipdb
+
+# 临时文件
+*~
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+

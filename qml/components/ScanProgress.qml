@@ -1,112 +1,96 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import Analyzer 1.0
 
-Rectangle {
-    id: progressRect
-    property CleanerController controller
-    
-    color: "#ffffff"
-    radius: 8
-    border.color: "#e0e0e0"
-    border.width: 1
-    
+ThemedPanel {
+    id: root
+    property AnalyzerController controller
+
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 12
-        
-        Text {
-            text: qsTr("扫描进度")
-            font.pixelSize: 16
-            font.bold: true
-            color: "#333333"
+        spacing: 10
+
+        ThemedSectionTitle {
+            controller: root.controller
+            title: qsTr("扫描进度")
         }
-        
-        ProgressBar {
-            id: progressBar
+
+        ThemedProgressBar {
             Layout.fillWidth: true
-            Layout.preferredHeight: 8
+            controller: root.controller
+            indeterminate: root.controller && root.controller.scanProgressIndeterminate
             from: 0
             to: 100
-            value: controller && controller.isScanning ? 50 : 0
-            
-            background: Rectangle {
-                color: "#e0e0e0"
-                radius: 4
-            }
-            
-            contentItem: Item {
-                implicitWidth: 200
-                implicitHeight: 8
-                
-                Rectangle {
-                    width: progressBar.visualPosition * parent.width
-                    height: parent.height
-                    radius: 4
-                    color: "#2196f3"
-                }
-            }
+            value: root.controller ? root.controller.scanProgress : 0
         }
-        
+
         GridLayout {
             Layout.fillWidth: true
             columns: 4
-            rowSpacing: 8
             columnSpacing: 16
-            
-            Text {
-                text: qsTr("状态:")
-                font.pixelSize: 13
-                color: "#666666"
+            rowSpacing: 8
+
+            Label {
+                text: qsTr("状态")
+                color: root.controller.themeManager.secondaryTextColor
             }
-            
-            Text {
-                text: controller && controller.isScanning ? qsTr("扫描中...") : qsTr("就绪")
-                font.pixelSize: 13
-                color: controller && controller.isScanning ? "#2196f3" : "#666666"
-                font.bold: controller && controller.isScanning
+            Label {
+                text: root.controller && root.controller.isScanning ? qsTr("扫描中…") : qsTr("就绪")
+                font.bold: root.controller && root.controller.isScanning
+                color: root.controller.themeManager.accentColor
             }
-            
-            Text {
-                text: qsTr("已扫描目录:")
-                font.pixelSize: 13
-                color: "#666666"
+            Label {
+                text: qsTr("目录数")
+                color: root.controller.themeManager.secondaryTextColor
             }
-            
-            Text {
-                text: controller ? controller.directoriesScanned : 0
-                font.pixelSize: 13
-                color: "#333333"
+            Label {
+                text: root.controller ? root.controller.directoriesScanned : 0
                 font.bold: true
+                color: root.controller.themeManager.textColor
             }
-            
-            Text {
-                text: qsTr("文件总数:")
-                font.pixelSize: 13
-                color: "#666666"
+
+            Label {
+                text: qsTr("文件数")
+                color: root.controller.themeManager.secondaryTextColor
             }
-            
-            Text {
-                text: controller ? controller.totalFiles : 0
-                font.pixelSize: 13
-                color: "#333333"
+            Label {
+                text: root.controller ? root.controller.totalFiles : 0
                 font.bold: true
+                color: root.controller.themeManager.textColor
             }
-            
-            Text {
-                text: qsTr("总大小:")
-                font.pixelSize: 13
-                color: "#666666"
+            Label {
+                text: qsTr("总大小")
+                color: root.controller.themeManager.secondaryTextColor
             }
-            
-            Text {
-                text: controller ? controller.formatFileSize(controller.totalSize) : "0 B"
-                font.pixelSize: 13
-                color: "#333333"
+            Label {
+                text: root.controller ? root.controller.formatFileSize(root.controller.totalSize) : "0 B"
                 font.bold: true
+                color: root.controller.themeManager.textColor
+            }
+
+            Label {
+                text: qsTr("耗时")
+                color: root.controller.themeManager.secondaryTextColor
+            }
+            Label {
+                text: root.controller && root.controller.scanElapsedMs > 0
+                      ? (root.controller.scanElapsedMs / 1000).toFixed(1) + " s"
+                      : "-"
+                font.bold: true
+                color: root.controller.themeManager.textColor
+            }
+            Label {
+                text: qsTr("速率")
+                color: root.controller.themeManager.secondaryTextColor
+            }
+            Label {
+                text: root.controller && root.controller.scanRateBytesPerSec > 0
+                      ? root.controller.formatFileSize(root.controller.scanRateBytesPerSec) + "/s"
+                      : "-"
+                font.bold: true
+                color: root.controller.themeManager.textColor
             }
         }
     }
 }
-

@@ -1,10 +1,52 @@
 <!DOCTYPE RCC>
+
 <RCC version="1.0">
+
     <qresource prefix="/">
+
         <file>main.qml</file>
-        <file>components/DiskSelector.qml</file>
+
+        <file>components/ThemedPanel.qml</file>
+        <file>components/ThemedSectionTitle.qml</file>
+        <file>components/ThemedProgressBar.qml</file>
+        <file>components/ThemedListRow.qml</file>
+        <file>components/PathSelector.qml</file>
+
         <file>components/ScanProgress.qml</file>
+
         <file>components/FileListView.qml</file>
+
+        <file>components/MessageBanner.qml</file>
+
+        <file>components/FolderTreeView.qml</file>
+
+        <file>components/TopFilesPanel.qml</file>
+
+        <file>components/SizeBarDelegate.qml</file>
+
+        <file>components/TreemapView.qml</file>
+
+        <file>components/ExtensionStatsPanel.qml</file>
+
+        <file>components/SearchField.qml</file>
+
+        <file>components/CleanupResultsPanel.qml</file>
+
+        <file>components/AllFilesView.qml</file>
+
+        <file>components/SettingsDialog.qml</file>
+
+        <file>components/DuplicateView.qml</file>
+
+        <file>components/CleanupHub.qml</file>
+
+        <file>components/FileWatcherView.qml</file>
+
+        <file>components/SunburstView.qml</file>
+
+        <file>components/qmldir</file>
+
     </qresource>
+
 </RCC>
 

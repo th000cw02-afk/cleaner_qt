@@ -1,13 +1,15 @@
-name: Build
+name: Release
 
 on:
   push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
-  build-windows:
+  release:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,13 +34,14 @@ jobs:
           ctest -C Release --output-on-failure
 
       - name: Deploy
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: cmake --build build --target deploy-release --config Release
 
-      - name: Upload artifact
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: actions/upload-artifact@v4
+      - name: Archive Release folder
+        run: |
+          Compress-Archive -Path public/Release/* -DestinationPath CleanerQt-Windows-x64.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: CleanerQt-Windows-Release
-          path: public/Release/
-          retention-days: 30
+          files: CleanerQt-Windows-x64.zip
+          generate_release_notes: true

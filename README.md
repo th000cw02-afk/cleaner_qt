@@ -1,39 +1,78 @@
-# cleaner_qt — 磁盘空间分析 v2.0
+# CleanerQt
 
-Windows 专精 Qt 6 磁盘空间分析工具，对齐 QDirStat / WinDirStat / DiskPilot / Scour 开源能力全集。
+[![Build](https://github.com/th000cw02-afk/cleaner_qt/actions/workflows/build.yml/badge.svg)](https://github.com/th000cw02-afk/cleaner_qt/actions/workflows/build.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Qt 6](https://img.shields.io/badge/Qt-6.8-green.svg)](https://www.qt.io/)
+[![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://github.com/th000cw02-afk/cleaner_qt)
 
-## 功能
+**[中文文档](README.zh-CN.md)**
 
-- **MFT 快速扫描**（NTFS + 管理员）与并行目录扫描自动回退
-- 目录树 + Squarified Treemap（扩展名着色、文件级块、钻取）
-- **全部文件** 扁平视图（`FileIndexModel` 虚拟滚动）
-- Logical / Allocated 大小、硬链接 registry
-- 扫描快照 `.cqtscan` 保存/加载
-- 重复文件专页、正则搜索、多选批量删除
-- **CleanupHub**：12 类 Scour 风格清理扫描器
-- 深色/浅色主题、设置对话框（排除规则、MFT、便携模式）
-- 扫描速率 GB/s 显示、UAC 提升重启
-- CLI：`CleanerQt.exe --scan C:\ --format csv --output r.csv --mft`
-- 目录监控（FileWatcher 占位）、Sunburst 备选 Tab
+Fast Windows disk space analyzer with NTFS MFT scanning, interactive treemap, 12 cleanup scanners, and a headless CLI. Built with Qt 6 and C++17.
 
-## 竞品参考
+## Screenshots
 
-| 项目 | 借鉴点 |
-|------|--------|
-| [QDirStat](https://github.com/shundhammer/qdirstat) | 树 + Treemap、扩展名图例、自定义清理命令 |
-| [WinDirStat](https://github.com/windirstat/windirstat) | 多视图、快照、硬链接、CLI |
-| [DiskPilot](https://github.com/mhkasif/DiskPilot) | 虚拟滚动、allocated/logical、列持久化 |
-| [Scour](https://github.com/SysAdminDoc/Scour) | 12 类清理扫描器 |
-| [DiskClarity](https://github.com/Ezeny1337/DiskClarity) | MFT 性能线 |
+### Disk usage at a glance
 
-## 环境要求
+Directory tree + squarified treemap with extension coloring and drill-down navigation.
+
+![Treemap overview](docs/screenshots/treemap-overview.png)
+
+### Cleanup Hub
+
+12 Scour-style scanners to find empty directories, duplicates, large files, temp files, and more.
+
+![Cleanup Hub](docs/screenshots/cleanup-hub.png)
+
+### All Files view
+
+Virtual-scrolled flat file index with sorting, filtering, and regex search.
+
+![All Files](docs/screenshots/all-files.png)
+
+### Dark theme
+
+Material Design dark/light themes with customizable accent colors.
+
+![Dark theme](docs/screenshots/dark-theme.png)
+
+## Features
+
+- **NTFS MFT fast scan** (admin) with automatic fallback to parallel directory walk
+- Directory tree + **squarified treemap** (extension colors, file-level blocks, drill-down)
+- **All Files** flat view with virtual scrolling (`FileIndexModel`)
+- Logical vs **allocated** size, hard-link registry
+- Scan snapshots (`.cqtscan`) save/load
+- Dedicated duplicates page, regex search, multi-select batch delete
+- **Cleanup Hub**: 12 Scour-style cleanup scanners
+- Dark/light theme, settings dialog (exclusions, MFT preference, portable mode)
+- Scan rate (GB/s), progress, UAC elevation restart
+- **CLI**: `CleanerQt.exe --scan C:\ --format csv --output r.csv --mft`
+- Sunburst alternate view, Top Files, extension stats
+
+## Inspired by
+
+| Project | What we borrowed |
+|---------|------------------|
+| [QDirStat](https://github.com/shundhammer/qdirstat) | Tree + treemap, extension legend, custom cleanup |
+| [WinDirStat](https://github.com/windirstat/windirstat) | Multi-view, snapshots, hard links, CLI |
+| [DiskPilot](https://github.com/mhkasif/DiskPilot) | Virtual scroll, allocated/logical, column persistence |
+| [Scour](https://github.com/SysAdminDoc/Scour) | 12 cleanup scanner types |
+| [DiskClarity](https://github.com/Ezeny1337/DiskClarity) | MFT performance baseline |
+
+## Quick start
+
+Download the latest **Release** from [GitHub Releases](https://github.com/th000cw02-afk/cleaner_qt/releases), extract the full `Release` folder (not just the `.exe`), and run `CleanerQt.exe`.
+
+> Run as **Administrator** on NTFS volumes to enable MFT fast scan.
+
+## Requirements
 
 - Windows 10/11
-- Qt 6.5+（Core, Quick, Qml, Widgets, Concurrent, Network）
+- Qt 6.5+ (Core, Quick, Qml, Widgets, Concurrent, Network)
 - CMake 3.16+
-- MSVC 2022 或 MinGW 64-bit
+- MSVC 2022 or MinGW 64-bit
 
-## 构建
+## Build
 
 ```powershell
 cd build
@@ -42,62 +81,66 @@ cmake --build . --config Release
 cmake --build . --target deploy-release --config Release
 ```
 
-或一键脚本：
+Or use the deploy script:
 
 ```powershell
 .\scripts\deploy.ps1
 ```
 
-`windeployqt` 会把 `Qt6Widgets.dll`、`Qt6Quick.dll`、`platforms\` 等复制到 exe 同目录。**不要只拷贝 exe**，整个 `public/release` 文件夹需一起分发。
+`windeployqt` copies `Qt6Widgets.dll`, `Qt6Quick.dll`, `platforms\`, etc. next to the executable. **Do not distribute the `.exe` alone** — ship the entire `public/Release` folder.
 
-输出：`public/Release/CleanerQt.exe`（与 DLL 同目录）
+Output: `public/Release/CleanerQt.exe`
 
 ## CLI
 
 ```powershell
 CleanerQt.exe --scan D:\ --output scan.csv --format csv --mft
 CleanerQt.exe --import-csv scan.csv
+CleanerQt.exe --scan D:\ --verbose
 ```
 
-## 快捷键
+## Keyboard shortcuts
 
-| 键 | 动作 |
-|----|------|
-| F5 | 开始扫描 |
-| Ctrl+S | 保存扫描快照 |
-| Ctrl+F | 聚焦搜索 |
+| Key | Action |
+|-----|--------|
+| F5 | Start scan |
+| Ctrl+S | Save scan snapshot |
+| Ctrl+F | Focus search |
 
-## 日志
+## Logging
 
-基于 [spdlog](https://github.com/gabime/spdlog)（可选）：将源码置于 `third_party/spdlog`，或配置时加 `-DCLEANER_QT_FETCH_SPDLOG=ON` 自动下载。未找到 spdlog 时使用内置文件日志。输出：控制台 + 滚动文件（默认 `logs/CleanerQt.log`，单文件 5MB，保留 3 个）。
+Uses [spdlog](https://github.com/gabime/spdlog) when available: place sources under `third_party/spdlog`, or pass `-DCLEANER_QT_FETCH_SPDLOG=ON` at configure time. Falls back to built-in file logging otherwise. Output: console + rotating file (`logs/CleanerQt.log`, 5 MB × 3 files).
 
-- GUI 与 QML 警告经 Qt 消息处理器写入同一日志
-- CLI：`CleanerQt.exe --scan D:\ --verbose` 开启 debug 级别
-- 设置项（`CleanerQt.ini` / 注册表）：`logLevel`（`trace|debug|info|warn|error`）、`logToFile`（默认 true）
+## Testing
 
-## 测试
-
-单元测试与集成测试（Qt Test + CTest），覆盖目录树、Treemap、TopFiles、ThemeManager、ScanModuleRegistry、日志、FormatUtils、硬链接、快照、导出、ScanWorker、CLI 等（约 20 个用例）。
-
-一键运行：
+~20 unit and integration tests (Qt Test + CTest):
 
 ```powershell
 .\scripts\test.ps1
 ```
 
-或手动：
+Disable tests: `cmake -DCLEANER_QT_BUILD_TESTS=OFF ..`
 
-```powershell
-$env:PATH = "C:\Qt\6.8.0\msvc2022_64\bin;" + $env:PATH
-cmake --build build --config Release
-cd build
-ctest -C Release --output-on-failure
-```
+Benchmark notes: [`tests/benchmark/README.md`](tests/benchmark/README.md)
 
-关闭测试构建：`cmake -DCLEANER_QT_BUILD_TESTS=OFF ..`
+## Roadmap / WIP
 
-Benchmark 说明见 `tests/benchmark/README.md`。
+The following modules are registered but not yet implemented (return empty results):
 
-## 许可
+- Broken links scanner
+- Duplicate archives scanner
+- Orphaned app data (uninstall leftovers)
 
-GPL-3.0 — 见 [LICENSE](LICENSE)
+The **File Watcher** tab is a UI placeholder.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports and feature requests welcome via [GitHub Issues](https://github.com/th000cw02-afk/cleaner_qt/issues).
+
+## Security
+
+This tool can delete files and request administrator elevation. See [SECURITY.md](SECURITY.md) for responsible disclosure.
+
+## License
+
+GPL-3.0 — see [LICENSE](LICENSE). Copyright (C) 2026 [th000cw02-afk](https://github.com/th000cw02-afk).

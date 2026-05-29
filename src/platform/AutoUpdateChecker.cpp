@@ -14,7 +14,7 @@ void AutoUpdateChecker::checkForUpdates()
 {
     auto* manager = new QNetworkAccessManager(this);
     QNetworkReply* reply = manager->get(QNetworkRequest(
-        QUrl(QStringLiteral("https://api.github.com/repos/cleaner_qt/cleaner_qt/releases/latest"))));
+        QUrl(QStringLiteral("https://api.github.com/repos/th000cw02-afk/cleaner_qt/releases/latest"))));
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         if (reply->error() == QNetworkReply::NoError) {
             const QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).object();

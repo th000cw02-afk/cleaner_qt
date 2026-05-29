@@ -1,6 +1,6 @@
 ; Inno Setup script — build Release + deploy-release first
 #define MyAppName "Disk Space Analyzer"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "2.0.0"
 #define MyAppPublisher "CleanerQt"
 #define MyAppExeName "CleanerQt.exe"
 

@@ -88,5 +88,32 @@ Dialog {
             Layout.fillWidth: true
             text: AppSettings.customCleanupCommand
         }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.topMargin: 8
+            height: 1
+            color: controller ? controller.themeManager.borderColor : "#ccc"
+        }
+
+        Label {
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            text: qsTr("CleanerQt %1 — GPL-3.0").arg(Qt.application.version)
+            font.pixelSize: 12
+            opacity: 0.8
+        }
+        Label {
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            text: "https://github.com/th000cw02-afk/cleaner_qt"
+            font.pixelSize: 12
+            color: controller ? controller.themeManager.accentColor : "#2196F3"
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: Qt.openUrlExternally("https://github.com/th000cw02-afk/cleaner_qt")
+            }
+        }
     }
 }
